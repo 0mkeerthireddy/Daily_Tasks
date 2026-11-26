@@ -11,11 +11,13 @@ Daily Python assignments completed during my internship. Each day has its own fo
 ```
 Daily_Tasks/
 ├── Day_1/
+|   |-README.md
 │   └── atm_banking_system.py   # Mini project: ATM Banking System
+|
 ├── Day_2/
-│   ├── programs.py             # String exercises 1–12
-│   └── text_analyser.py        # Mini project: Advanced Text Analyser
-└── README.md
+   ├README.md
+   └── text_analyser.py        # Mini project: Advanced Text Analyser
+
 ```
 
 ---
