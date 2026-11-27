@@ -1,61 +1,69 @@
+
 import re
 import string
 
-text = ""   # the paragraph; empty until the user enters it
+text = ""
 
 
-# ---------- helper functions ----------
+# ---------- Helper Functions ----------
 
 def get_words(t):
-    """Return a list of lowercase words with punctuation removed."""
-    words = []
-    for w in t.split():
-        w = w.strip(string.punctuation).lower()
-        if w != "":
-            words.append(w)
+    """Return lowercase words without punctuation."""
+    words = re.findall(r"\b[\w']+\b", t.lower())
     return words
 
 
 def get_sentences(t):
-    """Split the text into sentences using . ! and ?"""
-    t = t.replace("!", ".").replace("?", ".")
-    sentences = []
-    for s in t.split("."):
-        s = s.strip()
-        if s != "":
-            sentences.append(s)
-    return sentences
+    """Split text into sentences."""
+    sentences = re.split(r'(?<=[.!?])\s+', t.strip())
+    return [s.strip() for s in sentences if s.strip()]
 
 
 def count_frequency(words):
-    """Return a dictionary {word: count}."""
+    """Count frequency of each word."""
     freq = {}
+
     for w in words:
         if w in freq:
             freq[w] += 1
         else:
             freq[w] = 1
+
     return freq
 
 
 def sorted_frequency(freq):
-    """Return (word, count) pairs, highest count first, then alphabetical."""
+    """Sort by frequency and then alphabetically."""
     return sorted(freq.items(), key=lambda item: (-item[1], item[0]))
 
 
-# ---------- A. Text input ----------
+# ---------- 1. Text Input ----------
 
 def enter_text():
-    raw = input("Enter a paragraph: ")
-    cleaned = " ".join(raw.split())          # removes extra spaces
+    print("\nEnter your paragraph.")
+    print("Press Enter on an empty line to finish:")
+
+    lines = []
+
+    while True:
+        line = input()
+
+        if line == "":
+            break
+
+        lines.append(line)
+
+    cleaned = " ".join(" ".join(lines).split())
+
     if cleaned == "":
-        print("Error: input cannot be empty.")
+        print("Error: Input cannot be empty.")
         return ""
+
     print("Text entered successfully!")
     return cleaned
 
 
-# ---------- B. Character analysis ----------
+# ---------- 2. Character Analysis ----------
 
 def character_analysis(t):
     total = len(t)
@@ -68,15 +76,18 @@ def character_analysis(t):
     consonants = 0
 
     for ch in t:
+
         if not ch.isspace():
             without_spaces += 1
+
         if ch.isupper():
             uppercase += 1
         elif ch.islower():
             lowercase += 1
         elif ch.isdigit():
             digits += 1
-        elif not ch.isalnum() and not ch.isspace():
+
+        if not ch.isalnum() and not ch.isspace():
             special += 1
 
         if ch.isalpha():
@@ -96,24 +107,22 @@ def character_analysis(t):
     print("Consonants:", consonants)
 
 
-# ---------- C. Word analysis ----------
+# ---------- 3. Word Analysis ----------
 
 def word_analysis(t):
     words = get_words(t)
-    if len(words) == 0:
+
+    if not words:
         print("No words found.")
         return
 
-    longest = words[0]
-    shortest = words[0]
-    for w in words:
-        if len(w) > len(longest):
-            longest = w
-        if len(w) < len(shortest):
-            shortest = w
+    longest = max(words, key=len)
+    shortest = min(words, key=len)
 
     freq = count_frequency(words)
+
     duplicates = []
+
     for w in sorted(freq):
         if freq[w] > 1:
             duplicates.append(w)
@@ -122,30 +131,28 @@ def word_analysis(t):
     print("Total words:", len(words))
     print("Longest word:", longest)
     print("Shortest word:", shortest)
-    if len(duplicates) == 0:
-        print("Duplicate words: None")
-    else:
+
+    if duplicates:
         print("Duplicate words:", ", ".join(duplicates))
+    else:
+        print("Duplicate words: None")
+
     print("Words in alphabetical order:", ", ".join(sorted(words)))
 
 
-# ---------- D. Sentence analysis ----------
+# ---------- 4. Sentence Analysis ----------
 
 def sentence_analysis(t):
     sentences = get_sentences(t)
-    if len(sentences) == 0:
+
+    if not sentences:
         print("No sentences found.")
         return
 
-    longest = sentences[0]
-    shortest = sentences[0]
-    total_words = 0
-    for s in sentences:
-        total_words += len(s.split())
-        if len(s.split()) > len(longest.split()):
-            longest = s
-        if len(s.split()) < len(shortest.split()):
-            shortest = s
+    longest = max(sentences, key=lambda s: len(s.split()))
+    shortest = min(sentences, key=lambda s: len(s.split()))
+
+    total_words = sum(len(s.split()) for s in sentences)
 
     average = total_words / len(sentences)
 
@@ -156,96 +163,116 @@ def sentence_analysis(t):
     print("Average words per sentence:", round(average, 2))
 
 
-# ---------- E. Search and replace ----------
+# ---------- 5. Search a Word ----------
 
 def search_word(t):
     word = input("Enter the word to search: ").strip()
-    if word == "":
-        print("Error: word cannot be empty.")
-        return
-    pattern = r"\b" + re.escape(word) + r"\b"
-    count = len(re.findall(pattern, t, flags=re.IGNORECASE))
-    if count == 0:
-        print("The word '" + word + "' was not found.")
-    else:
-        print("The word '" + word + "' appears", count, "time(s).")
 
+    if not word:
+        print("Error: Word cannot be empty.")
+        return
+
+    pattern = r"\b" + re.escape(word) + r"\b"
+
+    count = len(re.findall(pattern, t, flags=re.IGNORECASE))
+
+    if count == 0:
+        print("Word not found.")
+    else:
+        print("The word", word, "appears", count, "time(s).")
+
+
+# ---------- 6. Replace a Word ----------
 
 def replace_word(t):
     old = input("Enter the word to replace: ").strip()
     new = input("Enter the new word: ").strip()
-    if old == "" or new == "":
-        print("Error: words cannot be empty.")
+
+    if not old or not new:
+        print("Error: Words cannot be empty.")
         return t
+
     pattern = r"\b" + re.escape(old) + r"\b"
-    if len(re.findall(pattern, t, flags=re.IGNORECASE)) == 0:
-        print("The word '" + old + "' was not found. Nothing replaced.")
+
+    if not re.search(pattern, t, flags=re.IGNORECASE):
+        print("Word not found. Nothing replaced.")
         return t
-    updated = re.sub(pattern, new, t, flags=re.IGNORECASE)
+
+    updated = re.sub(pattern, lambda match: new, t,
+                     flags=re.IGNORECASE)
+
     print("\nUpdated paragraph:")
     print(updated)
+
     return updated
 
 
-# ---------- F. Text transformation ----------
+# ---------- 7. Text Transformation ----------
 
 def text_transformation(t):
     print("\n===== TEXT TRANSFORMATION =====")
+
     print("Uppercase :", t.upper())
     print("Lowercase :", t.lower())
-
-    title_words = []
-    for w in t.split():
-        title_words.append(w.capitalize())
-    print("Title case:", " ".join(title_words))
-
+    print("Title case:", t.title())
     print("Reversed  :", t[::-1])
 
-    word = input("\nEnter a word to check for palindrome: ").strip()
-    if word == "":
-        print("Error: word cannot be empty.")
-    elif word.lower() == word.lower()[::-1]:
+    word = input("\nEnter a word to check palindrome: ").strip()
+
+    if not word:
+        print("Error: Word cannot be empty.")
+        return
+
+    cleaned = "".join(ch.lower() for ch in word if ch.isalnum())
+
+    if cleaned == cleaned[::-1]:
         print(word, "is a palindrome.")
     else:
         print(word, "is not a palindrome.")
 
 
-# ---------- 8. Word frequency ----------
+# ---------- 8. Word Frequency ----------
 
 def word_frequency(t):
     words = get_words(t)
-    if len(words) == 0:
+
+    if not words:
         print("No words found.")
         return
-    pairs = sorted_frequency(count_frequency(words))
+
+    freq = count_frequency(words)
+    pairs = sorted_frequency(freq)
 
     print("\n===== WORD FREQUENCY =====")
+
     for word, count in pairs:
         print(f"{word:<15} {count}")
 
-    print("\nTop 5 most frequent words:")
-    rank = 1
-    for word, count in pairs[:5]:
+    print("\nTop 5 Most Frequent Words:")
+
+    for rank, (word, count) in enumerate(pairs[:5], start=1):
         print(f"{rank}. {word} ({count})")
-        rank += 1
 
 
-# ---------- 9. Complete report ----------
+# ---------- 9. Complete Report ----------
 
 def complete_report(t):
     print("\n======= COMPLETE REPORT =======")
+
     print("\nParagraph:")
     print(t)
+
     character_analysis(t)
     word_analysis(t)
     sentence_analysis(t)
     word_frequency(t)
 
 
-# ---------- G. Interactive menu ----------
+# ---------- 10. Interactive Menu ----------
 
 while True:
-    print("\n======= ADVANCED TEXT ANALYSER =======\n")
+
+    print("\n======= ADVANCED TEXT ANALYSER =======")
     print("1. Enter Text")
     print("2. Character Analysis")
     print("3. Word Analysis")
@@ -261,7 +288,8 @@ while True:
 
     if choice == "1":
         result = enter_text()
-        if result != "":
+
+        if result:
             text = result
 
     elif choice == "10":
@@ -269,22 +297,31 @@ while True:
         break
 
     elif choice in ["2", "3", "4", "5", "6", "7", "8", "9"]:
+
         if text == "":
             print("Please enter text first (option 1).")
+
         elif choice == "2":
             character_analysis(text)
+
         elif choice == "3":
             word_analysis(text)
+
         elif choice == "4":
             sentence_analysis(text)
+
         elif choice == "5":
             search_word(text)
+
         elif choice == "6":
             text = replace_word(text)
+
         elif choice == "7":
             text_transformation(text)
+
         elif choice == "8":
             word_frequency(text)
+
         elif choice == "9":
             complete_report(text)
 
